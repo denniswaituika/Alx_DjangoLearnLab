@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from .models import Book
 from .models import Library
-from django.views.generic import TemplateView
 from django.views.generic import DetailView
 from django.views.generic.detail import DetailView
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import user_passes_test
+
 
 def book_list(request):
       """Retrieves all books and renders a template displaying the list."""
@@ -31,23 +34,39 @@ class LibraryDetailView(DetailView):
 
 def login_view(request):
     return auth_views.LoginView.as_view(template_name="relationship_app/login.html")(
-        request
+      request
     )
 
 
 def logout_view(request):
-    return auth_views.LogoutView.as_view(template_name="relationship_app/logout.html")(
-        request
+  return auth_views.LogoutView.as_view(template_name="relationship_app/logout.html")(
+    request
     )
 
 
 def register(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("home")  # Redirect to a home page after registration
-    else:
-        form = UserCreationForm()
+  if request.method == "POST":
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+      user = form.save()
+      login(request, user)
+      return redirect("home")  # Redirect to a home page after registration
+  else:
+    form = UserCreationForm()
     return render(request, "relationship_app/register.html", {"form": form})
+  
+  def check_role(user, role):
+    return user.userprofile.role == role
+
+@user_passes_test(lambda u: check_role(u, 'Admin'))
+def admin_view(request):
+    return render(request, 'relationship_app/admin_view.html')
+
+@user_passes_test(lambda u: check_role(u, 'Librarian'))
+def librarian_view(request):
+    return render(request, 'relationship_app/librarian_view.html')
+
+@user_passes_test(lambda u: check_role(u, 'Member'))
+def member_view(request):
+    return render(request, 'relationship_app/member_view.html')
+
