@@ -4,6 +4,9 @@ from .models import Library
 from django.views.generic import TemplateView
 from django.views.generic import DetailView
 from django.views.generic.detail import DetailView
+from django.shortcuts import render, redirect
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.forms import UserCreationForm
 
 def book_list(request):
       """Retrieves all books and renders a template displaying the list."""
@@ -25,8 +28,26 @@ class LibraryDetailView(DetailView):
     context['average_rating'] = library.get_average_rating() 
 
 
-Implement Class-based View:
 
-    Create a class-based view in relationship_app/views.py that displays details for a specific library,
-     listing all books available in that library.
-    Utilize Django’s ListView or DetailView to structure this class-based view.
+def login_view(request):
+    return auth_views.LoginView.as_view(template_name="relationship_app/login.html")(
+        request
+    )
+
+
+def logout_view(request):
+    return auth_views.LogoutView.as_view(template_name="relationship_app/logout.html")(
+        request
+    )
+
+
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("home")  # Redirect to a home page after registration
+    else:
+        form = UserCreationForm()
+    return render(request, "relationship_app/register.html", {"form": form})
