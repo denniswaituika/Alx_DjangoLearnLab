@@ -3,6 +3,7 @@ from .models import Book
 from .models import Library
 from django.views.generic import TemplateView
 from django.views.generic import DetailView
+from django.views.generic.detail import DetailView
 
 def book_list(request):
       """Retrieves all books and renders a template displaying the list."""
